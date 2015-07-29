@@ -4,12 +4,13 @@ using namespace Magick;
 
 int main(int argc,char **argv) { 
 	InitializeMagick(*argv);
-	Image image;
-	image.read("simple.png");
-    image.depth(8);
-    
-	//image.modulate(100, 115, 100);
-    image.level(0, 65535 * 0.51, 1.0);
+
+	Image image("simple.png");
+	Image image2(image);
+	image.oilPaint();
+
 	image.display();
+	image2.display();
+
 	return 0;
 }

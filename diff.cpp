@@ -24,7 +24,7 @@ double getMSE(Mat I1, Mat I2) {
 
 int main () {
 	Mat image1 = imread("fusion.jpg");
-	Mat image2 = imread("dahuang.png");
+	Mat image2 = imread("fusion2.jpg");
 
 	resize(image1, image1, Size(800, 600));
 	resize(image2, image2, Size(800, 600));
