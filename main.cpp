@@ -14,14 +14,12 @@ using namespace cv;
 using namespace boost;
 using namespace Magick;
 
-void simpleTonemappingImage(unsigned char* data);
-
 Vec3f simpleTonemapping(const Vec3f& color);
 Vec3f rgb2Yxy(Vec3f rgb);
 Vec3f Yxy2rgb(Vec3f Yxy);
 
 template<class T>
-inline T clamp(const T v, const T minV, const T maxV);
+T clamp(const T v, const T minV, const T maxV);
 
 void logTime(const string& message);
 
@@ -36,8 +34,8 @@ int main(int argc, char* argv[]) {
 	float opt_white_point=0.5f;
 	bool  opt_fftsolver=true;
 
-	if (argc != 2) {
-		cout << "Usage: " << argv[0] << " <exr image>" << endl;
+	if (argc != 3) {
+		cout << boost::format("Usage: %1% <exr image> <output image>") % argv[0] << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -126,13 +124,15 @@ int main(int argc, char* argv[]) {
 	simpleImage.modulate(100, 115, 100);
 	simpleImage.level(0, maxValue16 * 0.51, 1.0);
 
-	simpleImage.opacity(maxValue16 * 0.7);
-	mapImage.opacity(maxValue16 * 0.35);
+	// opacity here! difference from weight
+	simpleImage.opacity(maxValue16 * 0.3);
+	mapImage.opacity(maxValue16 * 0.65);
 
 	simpleImage.composite(mapImage, 0, 0, Magick::CompositeOperator::MultiplyCompositeOp);
+	simpleImage.opacity(0);
 	simpleImage.quality(100);
 	simpleImage.depth(8);
-	simpleImage.write("fusion.jpg");
+	simpleImage.write(argv[2]);
 
 	/*delete[] imgBuffer;
 	delete X;
@@ -142,10 +142,6 @@ int main(int argc, char* argv[]) {
 	delete L;*/
 
 	return EXIT_SUCCESS;
-}
-
-void simpleTonemappingImage(Image& image) {
-
 }
 
 Vec3f simpleTonemapping(const Vec3f& color) {
