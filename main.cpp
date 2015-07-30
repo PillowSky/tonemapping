@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
 
 	// opacity here! difference from weight
 	simpleImage.opacity(maxValue16 * 0.3);
-	mapImage.opacity(maxValue16 * 0.65);
+	mapImage.opacity(maxValue16 * 0.6);
 
 	logTime("opacity");
 
