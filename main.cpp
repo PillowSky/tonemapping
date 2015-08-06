@@ -57,6 +57,10 @@ int main(int argc, char* argv[]) {
 
 	logTime("constant done");
 
+	pfs::Array2DImpl* __R = new pfs::Array2DImpl(w, h);
+	pfs::Array2DImpl* __G = new pfs::Array2DImpl(w, h);
+	pfs::Array2DImpl* __B = new pfs::Array2DImpl(w, h);
+
 	pfs::Array2DImpl* X = new pfs::Array2DImpl(w, h);
 	pfs::Array2DImpl* Y = new pfs::Array2DImpl(w, h);
 	pfs::Array2DImpl* Z = new pfs::Array2DImpl(w, h);
@@ -67,15 +71,17 @@ int main(int argc, char* argv[]) {
 
 	logTime("memory alloc");
 
-	reader.readImage(X, Y, Z);
+	reader.readImage(__R, __G, __B);
 
 	logTime("image read");
 
-	memcpy(_R->getRawData(), X->getRawData(), sizeof(float) * pixelCount);
-	memcpy(_G->getRawData(), Y->getRawData(), sizeof(float) * pixelCount);
-	memcpy(_B->getRawData(), Z->getRawData(), sizeof(float) * pixelCount);
+	memcpy(_R->getRawData(), __R->getRawData(), sizeof(float) * pixelCount);
+	memcpy(_G->getRawData(), __G->getRawData(), sizeof(float) * pixelCount);
+	memcpy(_B->getRawData(), __B->getRawData(), sizeof(float) * pixelCount);
 
 	logTime("memory copy");
+
+	pfs::transformColorSpace(pfs::CS_RGB, __R, __G, __B, pfs::CS_XYZ, X, Y, Z);
 
 	if(Y == NULL || X == NULL || Z == NULL) {
 		throw pfs::Exception( "Missing X, Y, Z channels in the PFS stream" );
@@ -106,16 +112,14 @@ int main(int argc, char* argv[]) {
 		(*B)(i) = max((*B)(i) / y, 0.0f) * l;
 	}
 
-	pfs::transformColorSpace( pfs::CS_RGB, R, G, B, pfs::CS_XYZ, X, Y, Z );
-
 	logTime("color corrected");
 
 	// save tone mapping png file
 	unsigned char* mapBuffer = new unsigned char[valueCount];
 	for(int i = 0, pix = 0; pix < pixelCount; pix++ ) {
-		mapBuffer[i++] = (unsigned char)(clamp((*X)(pix), 0.0f, 1.0f) * maxValue8);
-		mapBuffer[i++] = (unsigned char)(clamp((*Y)(pix), 0.0f, 1.0f) * maxValue8);
-		mapBuffer[i++] = (unsigned char)(clamp((*Z)(pix), 0.0f, 1.0f) * maxValue8);
+		mapBuffer[i++] = (unsigned char)(clamp((*R)(pix), 0.0f, 1.0f) * maxValue8);
+		mapBuffer[i++] = (unsigned char)(clamp((*G)(pix), 0.0f, 1.0f) * maxValue8);
+		mapBuffer[i++] = (unsigned char)(clamp((*B)(pix), 0.0f, 1.0f) * maxValue8);
 	}
 
 	logTime("converted to buffer");
@@ -145,8 +149,8 @@ int main(int argc, char* argv[]) {
 	simpleImage.write(argv[3]);
 
 	// opacity here! difference from weight
-	simpleImage.opacity(maxValue16 * 0.3);
-	mapImage.opacity(maxValue16 * 0.6);
+	simpleImage.opacity(maxValue16 * 0.7);
+	mapImage.opacity(maxValue16 * 0.35);
 
 	logTime("opacity");
 
@@ -174,6 +178,9 @@ int main(int argc, char* argv[]) {
 	delete _R;
 	delete _G;
 	delete _B;
+	delete __R;
+	delete __G;
+	delete __B;
 
 	return EXIT_SUCCESS;
 }
