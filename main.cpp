@@ -102,10 +102,22 @@ int main(int argc, char* argv[]) {
 	pfs::transformColorSpace(pfs::CS_XYZ, X, Y, Z, pfs::CS_RGB, R, G, B);
 		
 	// Color correction
-	for (int i = 0; i < pixelCount; i++)	{
+	float lSum = 0;
+	for (int i = 0; i < pixelCount; i++) {
+		static const float epsilon = 1e-4f;
+		lSum += max((*L)(i), epsilon);
+	}
+	float lMean = lSum / pixelCount;
+	float lRatio = 1;
+	if (lMean < (155.0 / 255)) {
+		lRatio = (155.0 / 255) / lMean;
+	}
+	cout << "lRatio: " << lRatio << endl;
+
+	for (int i = 0; i < pixelCount; i++) {
 		static const float epsilon = 1e-4f;
 		float y = max((*Y)(i), epsilon);
-		float l = max((*L)(i), epsilon);
+		float l = min(max((*L)(i), epsilon) * lRatio, 1.0f);
 
 		(*R)(i) = max((*R)(i) / y, 0.0f) * l;
 		(*G)(i) = max((*G)(i) / y, 0.0f) * l;
